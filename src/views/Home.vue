@@ -10,23 +10,67 @@
         <div class="detail">
           <h3>Naruto</h3>
           <p>
-            Naruto, a mischievous ninja, struggles as he searches for
+            Naruto Uzumaki, a mischievous ninja, struggles as he searches for
             recognition and dreams of becoming the Hokage, the village's leader
             and strongest ninja.
           </p>
         </div>
       </router-link>
     </div>
-    <form @submit.prevent class="search-box">
-      <input type="text" placeholder="What are you looking for" />
+    <form @submit.prevent="SearchMovies()" class="search-box">
+      <input
+        type="text"
+        placeholder="What are you looking for"
+        v-model="search"
+      />
       <input type="submit" value="Search" />
     </form>
-    <div class="movies-list"></div>
+    <div class="movies-list">
+      <div class="movie" v-for="movie in movies" :key="movie.imdbID">
+        <router-link :to="'/movie/' + movie.imdbID" class="movie-link">
+          <div class="product-image">
+            <img :src="movie.Poster" alt="Movie Poster" />
+            <div class="type">
+              {{ movie.Type }}
+            </div>
+            <div class="detail">
+              <p class="year">{{ movie.Year }}</p>
+              <h3>{{ movie.Title }}</h3>
+            </div>
+          </div>
+        </router-link>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-export default {};
+import { ref } from 'vue';
+import env from '@/env.js';
+
+export default {
+  setup() {
+    const search = ref('');
+    const movies = ref([]);
+    const SearchMovies = () => {
+      if (search.value != '') {
+        fetch(`http://www.omdbapi.com/?apikey=${env.apikey}&s=${search.value}`)
+          .then((response) => response.json())
+          .then((data) => {
+            movies.value = data.Search;
+            search.value = '';
+            console.log(movies.value);
+          });
+      }
+    };
+
+    return {
+      search,
+      movies,
+      SearchMovies,
+    };
+  },
+};
 </script>
 
 <style lang="scss">
@@ -46,7 +90,7 @@ export default {};
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
+    top: 13em;
     background-color: rgba(0, 0, 0, 0.6);
     padding: 16px;
     z-index: 1;
@@ -102,6 +146,59 @@ export default {};
 
         &:active {
           background-color: #3b8070;
+        }
+      }
+    }
+  }
+  .movies-list {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0px 8px;
+
+    .movie {
+      max-width: 50%;
+      flex: 1 1 50%;
+      padding: 16px 8px;
+
+      .movie-link {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        .product-image {
+          position: relative;
+          display: block;
+
+          img {
+            display: block;
+            width: 100%;
+            height: 275px;
+            object-fit: cover;
+          }
+          .type {
+            position: absolute;
+            padding: 8px 16px;
+            background-color: #428883;
+            color: #fff;
+            bottom: 16px;
+            left: 0px;
+            text-transform: capitalize;
+          }
+        }
+        .detail {
+          background-color: #496583;
+          padding: 16px 8px;
+          flex: 1 1 100%;
+          border-radius: 0px 0px 8px 8px;
+
+          .year {
+            color: #aaa;
+            font-size: 14px;
+          }
+          h3 {
+            color: #fff;
+            font-weight: 600;
+            font-size: 18px;
+          }
         }
       }
     }
